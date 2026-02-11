@@ -1,9 +1,9 @@
-from client.eventbrite_client import EventbriteClient
+from client.ticketmaster_client import TicketmasterClient
 
 
 class EventRepository:
-    def __init__(self, client: EventbriteClient):
+    def __init__(self, client: TicketmasterClient):
         self.client = client
 
-    def get_events(self, query, location):
-        pass  # Retourne une liste d’objets Event
+    def get_events(self, query, location="Paris"):
+        return self.client.fetch_events(query=query, city=location)

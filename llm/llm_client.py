@@ -21,16 +21,22 @@ class LLMClient:
 
     def _build_prompt(self, query, events: [Event]):
         event_details = "\n\n".join([
-            f"Titre : {event.name}\nDescription : {event.description}\nDate : {event.date}\nLien : {event.url}"
-            for event in events
+            f"Titre : {e.name}\n"
+            f"Genre : {e.genre}\n"
+            f"Lieu : {e.venue}\n"
+            f"Ville : {e.city}\n"
+            f"Date : {e.date}\n"
+            f"Description : {e.description}\n"
+            f"Lien : {e.url}"
+            for e in events
         ])
 
         prompt = (
             f"Un utilisateur recherche : '{query}'.\n"
-            f"Voici une liste d'événements pertinents :\n\n"
+            f"Voici une liste d'evenements pertinents :\n\n"
             f"{event_details}\n\n"
-            f"En te basant uniquement sur ces événements, recommande 3 événements maximum "
-            f"et explique brièvement pourquoi chacun correspond bien à ce que recherche l'utilisateur."
+            f"En te basant uniquement sur ces evenements, recommande 3 evenements maximum "
+            f"et explique brievement pourquoi chacun correspond bien a ce que recherche l'utilisateur."
         )
 
         return prompt
