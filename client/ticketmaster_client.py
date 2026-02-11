@@ -1,17 +1,15 @@
+import time
 import requests
 from data.event import Event
-from datetime import datetime, timezone, timedelta
 
 
 class TicketmasterClient:
     BASE_URL = "https://app.ticketmaster.com/discovery/v2/"
     SEARCH_ENDPOINT = "events.json"
-    DATE_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
-    DEFAULT_DAYS_START = 0
-    DEFAULT_DAYS_END = 30
-    DEFAULT_PAGE_SIZE = 20
-    DEFAULT_MAX_PAGES = 3
+    DEFAULT_PAGE_SIZE = 200
+    MAX_PAGE = 5
     LOCALE = "*"
+    REQUEST_DELAY = 0.25
 
     ERROR_FETCH = "Erreur lors de la recuperation des evenements : "
     ERROR_EVENT_PARSE = "Erreur lors du parsing d'un evenement : "
@@ -19,29 +17,30 @@ class TicketmasterClient:
     def __init__(self, api_key):
         self.api_key = api_key
 
-    def fetch_events(self, query, country_code="FR", classification_name="music",
-                     max_pages=DEFAULT_MAX_PAGES):
+    def fetch_events(self, country_code="FR", classification_name=None,
+                     keyword=None, page_size=DEFAULT_PAGE_SIZE):
         url = f"{self.BASE_URL}{self.SEARCH_ENDPOINT}"
 
         events = []
         page = 0
 
-        while page < max_pages:
+        while page <= self.MAX_PAGE:
             params = {
                 "apikey": self.api_key,
                 "countryCode": country_code,
-                "classificationName": classification_name,
-                "size": self.DEFAULT_PAGE_SIZE,
+                "size": page_size,
                 "page": page,
                 "locale": self.LOCALE,
             }
-            if query:
-                params["keyword"] = query
+            if classification_name:
+                params["classificationName"] = classification_name
+            if keyword:
+                params["keyword"] = keyword
 
             response = requests.get(url, params=params)
 
             if response.status_code != 200:
-                print(self.ERROR_FETCH + str(response.status_code))
+                print(f"{self.ERROR_FETCH}{response.status_code} (page {page})")
                 break
 
             data = response.json()
@@ -60,6 +59,8 @@ class TicketmasterClient:
             page += 1
             if page >= total_pages:
                 break
+
+            time.sleep(self.REQUEST_DELAY)
 
         return events
 
