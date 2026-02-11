@@ -14,7 +14,7 @@ class LLMClient:
             model=self.model,
             messages=[{"role": "user", "content": prompt}],
             temperature=0.7,
-            max_tokens=500
+            max_tokens=1000
         )
 
         return response.choices[0].message.content.strip()
@@ -36,7 +36,9 @@ class LLMClient:
             f"Voici une liste d'evenements pertinents :\n\n"
             f"{event_details}\n\n"
             f"En te basant uniquement sur ces evenements, recommande 3 evenements maximum "
-            f"et explique brievement pourquoi chacun correspond bien a ce que recherche l'utilisateur."
+            f"et explique brievement pourquoi chacun correspond bien a ce que recherche l'utilisateur.\n"
+            f"Pour chaque recommandation, inclus imperativement le lien de billetterie fourni "
+            f"dans le champ 'Lien' afin que l'utilisateur puisse reserver directement."
         )
 
         return prompt
