@@ -11,7 +11,7 @@ class TicketmasterClient:
     DEFAULT_DAYS_END = 30
     DEFAULT_PAGE_SIZE = 20
     DEFAULT_MAX_PAGES = 3
-    LOCALE = "fr-fr"
+    LOCALE = "*"
 
     ERROR_FETCH = "Erreur lors de la recuperation des evenements : "
     ERROR_EVENT_PARSE = "Erreur lors du parsing d'un evenement : "
@@ -19,13 +19,9 @@ class TicketmasterClient:
     def __init__(self, api_key):
         self.api_key = api_key
 
-    def fetch_events(self, query, country_code="FR", start_days=DEFAULT_DAYS_START,
-                     end_days=DEFAULT_DAYS_END, max_pages=DEFAULT_MAX_PAGES):
+    def fetch_events(self, query, country_code="FR", classification_name="music",
+                     max_pages=DEFAULT_MAX_PAGES):
         url = f"{self.BASE_URL}{self.SEARCH_ENDPOINT}"
-
-        now = datetime.now(timezone.utc)
-        start_dt = (now + timedelta(days=start_days)).strftime(self.DATE_FORMAT)
-        end_dt = (now + timedelta(days=end_days)).strftime(self.DATE_FORMAT)
 
         events = []
         page = 0
@@ -33,15 +29,14 @@ class TicketmasterClient:
         while page < max_pages:
             params = {
                 "apikey": self.api_key,
-                "keyword": query,
                 "countryCode": country_code,
-                "startDateTime": start_dt,
-                "endDateTime": end_dt,
+                "classificationName": classification_name,
                 "size": self.DEFAULT_PAGE_SIZE,
                 "page": page,
                 "locale": self.LOCALE,
-                "sort": "date,asc",
             }
+            if query:
+                params["keyword"] = query
 
             response = requests.get(url, params=params)
 
@@ -70,9 +65,16 @@ class TicketmasterClient:
 
     def _parse_event(self, event):
         genre = ""
+        segment = ""
+        subgenre = ""
         classifications = event.get("classifications", [])
         if classifications:
-            genre = classifications[0].get("genre", {}).get("name", "")
+            cls = classifications[0]
+            genre = cls.get("genre", {}).get("name", "")
+            segment = cls.get("segment", {}).get("name", "")
+            subgenre = cls.get("subGenre", {}).get("name", "")
+            if genre in ("Undefined", "Other", ""):
+                genre = subgenre if subgenre not in ("Undefined", "Other", "") else segment
 
         venue_name = ""
         city_name = ""

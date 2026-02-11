@@ -13,11 +13,11 @@ class Event:
     genre: str = ""
 
     def to_text(self):
-        parts = [self.name]
+        parts = [f"Concert : {self.name}"]
         if self.genre:
-            parts.append(f"Genre : {self.genre}")
+            parts.append(f"Genre musical : {self.genre}")
         if self.venue:
-            parts.append(f"Lieu : {self.venue}")
+            parts.append(f"Salle : {self.venue}")
         if self.city:
             parts.append(f"Ville : {self.city}")
         if self.date:

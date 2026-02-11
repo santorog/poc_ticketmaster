@@ -1,24 +1,26 @@
 import config
-from client.ticketmaster_client import TicketmasterClient
-from data.event_repository import EventRepository
 from rag.vector_store import VectorStore
 from rag.rag_engine import RagEngine
 from llm.llm_client import LLMClient
 
 
 def main():
-    user_query = input("Que recherches-tu ? ")
+    vector_store = VectorStore(embedding_model="sentence-transformers/all-MiniLM-L6-v2")
 
-    tm_client = TicketmasterClient(config.TICKETMASTER_API_KEY)
-    repository = EventRepository(tm_client)
-    events = repository.get_events(query=user_query, country_code="FR")
-
-    if not events:
-        print("Aucun evenement trouve.")
+    if vector_store.load():
+        print(f"Base chargee : {vector_store.count()} evenements indexes.")
+    else:
+        print("Aucune base trouvee. Lance d'abord : python ingest.py")
         return
 
-    vector_store = VectorStore(embedding_model="sentence-transformers/all-MiniLM-L6-v2")
-    vector_store.add_events(events)
+    user_query = input("Que recherches-tu ? ")
+
+    results = vector_store.query(user_query, top_k=5)
+    if not results:
+        print("Aucun evenement correspondant.")
+        return
+
+    print(f"\n{len(results)} evenements trouves, generation de la recommandation...\n")
 
     llm_client = LLMClient(config.OPENAI_API_KEY)
     rag_engine = RagEngine(vector_store, llm_client)
