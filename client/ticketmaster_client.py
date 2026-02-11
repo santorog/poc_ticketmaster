@@ -19,7 +19,7 @@ class TicketmasterClient:
     def __init__(self, api_key):
         self.api_key = api_key
 
-    def fetch_events(self, query, city="Paris", start_days=DEFAULT_DAYS_START,
+    def fetch_events(self, query, country_code="FR", start_days=DEFAULT_DAYS_START,
                      end_days=DEFAULT_DAYS_END, max_pages=DEFAULT_MAX_PAGES):
         url = f"{self.BASE_URL}{self.SEARCH_ENDPOINT}"
 
@@ -34,7 +34,7 @@ class TicketmasterClient:
             params = {
                 "apikey": self.api_key,
                 "keyword": query,
-                "city": city,
+                "countryCode": country_code,
                 "startDateTime": start_dt,
                 "endDateTime": end_dt,
                 "size": self.DEFAULT_PAGE_SIZE,
@@ -89,14 +89,16 @@ class TicketmasterClient:
         if local_time:
             date = f"{date} {local_time}"
 
-        description_parts = []
-        if genre:
-            description_parts.append(genre)
-        if venue_name:
-            description_parts.append(f"au {venue_name}")
-        if city_name:
-            description_parts.append(f"a {city_name}")
-        description = ", ".join(description_parts) if description_parts else ""
+        description = event.get("info", "")
+        if not description:
+            parts = []
+            if genre:
+                parts.append(genre)
+            if venue_name:
+                parts.append(f"au {venue_name}")
+            if city_name:
+                parts.append(f"a {city_name}")
+            description = ", ".join(parts) if parts else ""
 
         return Event(
             id=event["id"],

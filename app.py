@@ -11,7 +11,7 @@ def main():
 
     tm_client = TicketmasterClient(config.TICKETMASTER_API_KEY)
     repository = EventRepository(tm_client)
-    events = repository.get_events(query=user_query, location="Paris")
+    events = repository.get_events(query=user_query, country_code="FR")
 
     if not events:
         print("Aucun evenement trouve.")

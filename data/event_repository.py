@@ -5,5 +5,5 @@ class EventRepository:
     def __init__(self, client: TicketmasterClient):
         self.client = client
 
-    def get_events(self, query, location="Paris"):
-        return self.client.fetch_events(query=query, city=location)
+    def get_events(self, query, country_code="FR"):
+        return self.client.fetch_events(query=query, country_code=country_code)
