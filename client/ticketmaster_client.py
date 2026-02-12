@@ -81,10 +81,15 @@ class TicketmasterClient:
 
         venue_name = ""
         city_name = ""
+        latitude = 0
+        longitude = 0
         venues = event.get("_embedded", {}).get("venues", [])
         if venues:
             venue_name = venues[0].get("name", "")
             city_name = venues[0].get("city", {}).get("name", "")
+            location = venues[0].get("location", {})
+            latitude = float(location.get("latitude", 0) or 0)
+            longitude = float(location.get("longitude", 0) or 0)
 
         date = ""
         dates = event.get("dates", {})
@@ -105,6 +110,11 @@ class TicketmasterClient:
                 parts.append(f"a {city_name}")
             description = ", ".join(parts) if parts else ""
 
+        price = 0
+        price_ranges = event.get("priceRanges", [])
+        if price_ranges:
+            price = float(price_ranges[0].get("min", 0) or 0)
+
         return Event(
             id=event["id"],
             name=event.get("name", ""),
@@ -114,4 +124,7 @@ class TicketmasterClient:
             venue=venue_name,
             city=city_name,
             genre=genre,
+            price=price,
+            latitude=latitude,
+            longitude=longitude,
         )

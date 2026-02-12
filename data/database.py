@@ -17,22 +17,32 @@ class EventDatabase:
             venue TEXT DEFAULT '',
             city TEXT DEFAULT '',
             genre TEXT DEFAULT '',
+            price REAL DEFAULT 0,
+            latitude REAL DEFAULT 0,
+            longitude REAL DEFAULT 0,
             classification TEXT DEFAULT '',
             fetched_at TEXT NOT NULL
         )
     """
 
+    MIGRATE_COLUMNS = [
+        "ALTER TABLE events ADD COLUMN price REAL DEFAULT 0",
+        "ALTER TABLE events ADD COLUMN latitude REAL DEFAULT 0",
+        "ALTER TABLE events ADD COLUMN longitude REAL DEFAULT 0",
+    ]
+
     UPSERT = """
-        INSERT INTO events (id, name, description, date, url, venue, city, genre, classification, fetched_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO events (id, name, description, date, url, venue, city, genre, price, latitude, longitude, classification, fetched_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(id) DO UPDATE SET
             name=excluded.name, description=excluded.description,
             date=excluded.date, url=excluded.url, venue=excluded.venue,
             city=excluded.city, genre=excluded.genre,
+            price=excluded.price, latitude=excluded.latitude, longitude=excluded.longitude,
             classification=excluded.classification, fetched_at=excluded.fetched_at
     """
 
-    SELECT_ALL = "SELECT id, name, description, date, url, venue, city, genre FROM events"
+    SELECT_ALL = "SELECT id, name, description, date, url, venue, city, genre, price, latitude, longitude FROM events"
 
     def __init__(self, db_path=DEFAULT_PATH):
         self.db_path = db_path
@@ -40,11 +50,22 @@ class EventDatabase:
         self.conn = sqlite3.connect(db_path)
         self.conn.execute(self.CREATE_TABLE)
         self.conn.commit()
+        self._migrate()
+
+    def _migrate(self):
+        """Add columns that may be missing from older databases."""
+        existing = {row[1] for row in self.conn.execute("PRAGMA table_info(events)").fetchall()}
+        for stmt in self.MIGRATE_COLUMNS:
+            col = stmt.split("ADD COLUMN ")[1].split()[0]
+            if col not in existing:
+                self.conn.execute(stmt)
+        self.conn.commit()
 
     def upsert_events(self, events, classification=""):
         now = datetime.now(timezone.utc).isoformat()
         rows = [
-            (e.id, e.name, e.description, e.date, e.url, e.venue, e.city, e.genre, classification, now)
+            (e.id, e.name, e.description, e.date, e.url, e.venue, e.city, e.genre,
+             e.price, e.latitude, e.longitude, classification, now)
             for e in events
         ]
         self.conn.executemany(self.UPSERT, rows)
@@ -53,14 +74,16 @@ class EventDatabase:
     def get_all_events(self):
         cursor = self.conn.execute(self.SELECT_ALL)
         return [Event(id=r[0], name=r[1], description=r[2], date=r[3],
-                      url=r[4], venue=r[5], city=r[6], genre=r[7])
+                      url=r[4], venue=r[5], city=r[6], genre=r[7],
+                      price=r[8] or 0, latitude=r[9] or 0, longitude=r[10] or 0)
                 for r in cursor.fetchall()]
 
     def get_events_by_classification(self, classification):
         cursor = self.conn.execute(
             self.SELECT_ALL + " WHERE classification = ?", (classification,))
         return [Event(id=r[0], name=r[1], description=r[2], date=r[3],
-                      url=r[4], venue=r[5], city=r[6], genre=r[7])
+                      url=r[4], venue=r[5], city=r[6], genre=r[7],
+                      price=r[8] or 0, latitude=r[9] or 0, longitude=r[10] or 0)
                 for r in cursor.fetchall()]
 
     def count(self):

@@ -43,6 +43,10 @@ def setup_profile():
         print(f"\nSalut {profile.name} ! Content de te revoir.")
         print(f"  Tes gouts : {', '.join(profile.preferred_genres) or 'non definis'}")
         print(f"  Ta ville : {profile.city or 'non definie'}")
+        if profile.search_city:
+            print(f"  Recherche a : {profile.search_city}")
+        if profile.budget_max:
+            print(f"  Budget max : {profile.budget_max:.0f} EUR")
 
         reset = input("\nGarder ce profil ? (o/n) : ").strip().lower()
         if reset == "n":
@@ -58,6 +62,8 @@ def create_profile():
     text = get_input(
         "Presente-toi ! Dis-moi ton prenom, ou tu habites, "
         "ce que tu aimes (musique, theatre, sport...), "
+        "ou tu cherches des evenements en ce moment, "
+        "quand tu es dispo, ton budget, "
         "et si tu es plutot du genre a rester dans tes gouts ou a decouvrir."
     )
 
@@ -73,6 +79,12 @@ def create_profile():
     print(f"  Prenom : {profile.name}")
     print(f"  Ville : {profile.city}")
     print(f"  Gouts : {', '.join(profile.preferred_genres)}")
+    if profile.search_city:
+        print(f"  Recherche a : {profile.search_city}")
+    if profile.search_dates:
+        print(f"  Dispo : {profile.search_dates}")
+    if profile.budget_max:
+        print(f"  Budget max : {profile.budget_max:.0f} EUR")
     print(f"  Ouverture : {profile.openness}/1.0")
     return profile
 

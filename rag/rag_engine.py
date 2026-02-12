@@ -1,4 +1,5 @@
 from rag.vector_store import VectorStore
+from geo.distance import compute_distance
 
 
 class RagEngine:
@@ -13,4 +14,18 @@ class RagEngine:
             search_text = user_query
 
         relevant_events = self.vector_store.query(search_text, top_k=10)
-        return self.llm_client.generate_suggestion(user_query, relevant_events, profile=profile)
+
+        # Compute distances from user's search city
+        distances = {}
+        search_city = profile.search_city if profile else None
+        if not search_city and profile:
+            search_city = profile.city
+        if search_city:
+            for e in relevant_events:
+                d = compute_distance(search_city, e)
+                if d is not None:
+                    distances[e.id] = d
+
+        return self.llm_client.generate_suggestion(
+            user_query, relevant_events, profile=profile, distances=distances
+        )

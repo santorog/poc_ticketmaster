@@ -54,7 +54,8 @@ class VectorStore:
             events_data.append({
                 "id": e.id, "name": e.name, "description": e.description,
                 "date": e.date, "url": e.url, "venue": e.venue,
-                "city": e.city, "genre": e.genre,
+                "city": e.city, "genre": e.genre, "price": e.price,
+                "latitude": e.latitude, "longitude": e.longitude,
             })
 
         with open(os.path.join(self.persist_dir, self.EVENTS_FILE), "w", encoding="utf-8") as f:
