@@ -17,7 +17,7 @@ def main():
         profile = UserProfile.load(args.profile)
         print(f"Profil charge : {profile.name} (ouverture {profile.openness})")
 
-    vector_store = VectorStore(embedding_model="sentence-transformers/all-MiniLM-L6-v2")
+    vector_store = VectorStore(embedding_model="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
 
     if vector_store.load():
         print(f"Base chargee : {vector_store.count()} evenements indexes.")

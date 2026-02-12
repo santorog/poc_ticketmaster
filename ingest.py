@@ -47,7 +47,7 @@ def embed(db):
         return
 
     print(f"\nCreation des embeddings pour {len(events)} evenements...")
-    vs = VectorStore(embedding_model="sentence-transformers/all-MiniLM-L6-v2")
+    vs = VectorStore(embedding_model="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
     vs.add_events(events)
     vs.save()
     print(f"Index FAISS sauvegarde : {vs.count()} vecteurs dans db/")
