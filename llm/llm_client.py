@@ -7,8 +7,8 @@ class LLMClient:
         self.client = OpenAI(api_key=api_key)
         self.model = model
 
-    def generate_suggestion(self, query, events: [Event]):
-        prompt = self._build_prompt(query, events)
+    def generate_suggestion(self, query, events: [Event], profile=None):
+        prompt = self._build_prompt(query, events, profile)
 
         response = self.client.chat.completions.create(
             model=self.model,
@@ -19,7 +19,7 @@ class LLMClient:
 
         return response.choices[0].message.content.strip()
 
-    def _build_prompt(self, query, events: [Event]):
+    def _build_prompt(self, query, events: [Event], profile=None):
         event_details = "\n\n".join([
             f"Titre : {e.name}\n"
             f"Genre : {e.genre}\n"
@@ -31,14 +31,41 @@ class LLMClient:
             for e in events
         ])
 
-        prompt = (
-            f"Un utilisateur recherche : '{query}'.\n"
-            f"Voici une liste d'evenements pertinents :\n\n"
-            f"{event_details}\n\n"
-            f"En te basant uniquement sur ces evenements, recommande 3 evenements maximum "
-            f"et explique brievement pourquoi chacun correspond bien a ce que recherche l'utilisateur.\n"
-            f"Pour chaque recommandation, inclus imperativement le lien de billetterie fourni "
-            f"dans le champ 'Lien' afin que l'utilisateur puisse reserver directement."
+        parts = [f"Un utilisateur recherche : '{query}'."]
+
+        if profile:
+            parts.append(
+                f"\nProfil de l'utilisateur :\n{profile.to_prompt_context()}\n"
+            )
+
+        parts.append(
+            f"Voici une liste d'evenements pertinents :\n\n{event_details}\n"
         )
 
-        return prompt
+        if profile and profile.openness < 0.3:
+            parts.append(
+                "Recommande uniquement des evenements qui correspondent "
+                "aux genres et villes preferes de l'utilisateur."
+            )
+        elif profile and profile.openness < 0.7:
+            parts.append(
+                "Privilegie les evenements qui correspondent aux gouts de l'utilisateur, "
+                "mais propose aussi une decouverte parmi les resultats."
+            )
+        elif profile:
+            parts.append(
+                "Propose un maximum de diversite et de decouverte, "
+                "tout en expliquant pourquoi chaque evenement pourrait plaire a l'utilisateur."
+            )
+        else:
+            parts.append(
+                "En te basant uniquement sur ces evenements, recommande 3 evenements maximum "
+                "et explique brievement pourquoi chacun correspond bien a ce que recherche l'utilisateur."
+            )
+
+        parts.append(
+            "Pour chaque recommandation, inclus imperativement le lien de billetterie fourni "
+            "dans le champ 'Lien' afin que l'utilisateur puisse reserver directement."
+        )
+
+        return "\n".join(parts)

@@ -1,0 +1,11 @@
+name: "Santiago"
+city: "Paris"
+preferred_genres:
+  - Rock
+  - Jazz
+  - Chanson Francaise
+preferred_cities:
+  - Paris
+  - Bordeaux
+  - Lyon
+openness: 0.7  # 0.0 = strict, 1.0 = tres ouvert
