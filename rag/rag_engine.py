@@ -9,10 +9,8 @@ class RagEngine:
     def generate_response(self, user_query, profile=None):
         if profile:
             search_text = profile.to_search_text(user_query)
-            top_k = profile.compute_top_k()
         else:
             search_text = user_query
-            top_k = 5
 
-        relevant_events = self.vector_store.query(search_text, top_k=top_k)
+        relevant_events = self.vector_store.query(search_text, top_k=10)
         return self.llm_client.generate_suggestion(user_query, relevant_events, profile=profile)
