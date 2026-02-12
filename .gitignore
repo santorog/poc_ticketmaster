@@ -175,3 +175,6 @@ cython_debug/
 
 # VectorStore persistence
 db/
+
+# Application logs
+logs/
