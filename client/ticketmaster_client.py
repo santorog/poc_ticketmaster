@@ -18,7 +18,7 @@ class TicketmasterClient:
         self.api_key = api_key
 
     def fetch_events(self, country_code="FR", classification_name=None,
-                     keyword=None, page_size=DEFAULT_PAGE_SIZE):
+                     keyword=None, genre_id=None, page_size=DEFAULT_PAGE_SIZE):
         url = f"{self.BASE_URL}{self.SEARCH_ENDPOINT}"
 
         events = []
@@ -36,6 +36,8 @@ class TicketmasterClient:
                 params["classificationName"] = classification_name
             if keyword:
                 params["keyword"] = keyword
+            if genre_id:
+                params["genreId"] = genre_id
 
             response = requests.get(url, params=params)
 
@@ -92,7 +94,7 @@ class TicketmasterClient:
         if local_time:
             date = f"{date} {local_time}"
 
-        description = event.get("info", "")
+        description = event.get("description", "") or event.get("info", "")
         if not description:
             parts = []
             if genre:
